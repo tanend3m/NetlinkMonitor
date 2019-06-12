@@ -6,6 +6,22 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define NIP(addr) \
+	((unsigned char*) &addr)[0], \
+	((unsigned char*) &addr)[1], \
+	((unsigned char*) &addr)[2], \
+	((unsigned char*) &addr)[3] \
+
+#define HRD(addr) \
+	((unsigned char*) &addr)[0], \
+	((unsigned char*) &addr)[1], \
+	((unsigned char*) &addr)[2], \
+	((unsigned char*) &addr)[3], \
+	((unsigned char*) &addr)[4], \
+	((unsigned char*) &addr)[5] \
+
+
+
   int rclen, nllen, atlen;
   char buf[8192];
   char *ptr;
@@ -73,11 +89,12 @@
   {
     struct ifaddrmsg *ifp = (struct ifaddrmsg*) NLMSG_DATA(nlp);
     char ifname[1024], ifadd[1024];
+    struct in_addr *inp;
 
     memset(ifname, 0, sizeof(ifname));
     memset(ifadd, 0, sizeof(ifadd));
 
-    struct rtattr *atp = (struct rtattr*) RTM_RTA(ifp);
+    struct rtattr *atp = (struct rtattr*) IFA_RTA(ifp);
     int atlen = RTM_PAYLOAD(nlp);
 
     for(;RTA_OK(atp, atlen); atp = RTA_NEXT(atp, atlen)) 
@@ -86,7 +103,8 @@
       {
         case IFA_LABEL:   sprintf(ifname, "%s", (char*) RTA_DATA(atp));
                           break;
-        case IFA_ADDRESS: inet_ntop(AF_INET, RTA_DATA(atp), ifadd, sizeof(ifadd));
+        case IFA_ADDRESS: inp = (struct in_addr *) RTA_DATA(atp);
+			  //inet_ntop(AF_INET, RTA_DATA(atp), ifadd, sizeof(ifadd));
                           break;
         
       }
@@ -101,7 +119,7 @@
           printf("[DEL IF]");
           break;
     }
-    printf("%s : %s\n", ifname, ifadd);
+    printf("Ifname: %s | Hardware add:  %u.%u.%u.%u\n", ifname, NIP(*inp));
   }
 
 
@@ -150,7 +168,8 @@
     memset(dev, 0, sizeof(dev));
 
     struct ifinfomsg *ifi = (struct ifinfomsg*) NLMSG_DATA(nlp);
-    struct rtattr *atp = (struct rtattr*) RTM_RTA(ifi);
+    struct rtattr *atp = (struct rtattr*) IFLA_RTA(ifi);
+    struct in_addr *inp;
 
     int atlen = RTM_PAYLOAD(nlp);
     for(;RTA_OK(atp, atlen); atp = RTA_NEXT(atp, atlen)) 
@@ -160,7 +179,8 @@
         case IFLA_IFNAME:      sprintf(dev, "%s", (char*) RTA_DATA(atp));
                                break;
 
-        case IFLA_ADDRESS:     sprintf(hdradd, "%s", (char*) RTA_DATA(atp));
+        case IFLA_ADDRESS:     inp = (struct in_addr*) RTA_DATA(atp);
+			       //sprintf(hdradd, "%s", (char*) RTA_DATA(atp));
                                break;
       }
     }
@@ -174,7 +194,8 @@
           printf("[DEL IF]");
           break;
     }
-    printf("Ifname : %s | Ifaddress : %s\n", dev, hdradd);
+    printf("Ifname : %s", dev);
+    printf(" | Ifaddress : %02x:%02x:%02x:%02x:%02x:%02x\n", HRD(*inp));
 
   }
 
@@ -228,7 +249,7 @@
 
     char kind[1024];
     struct rtmsg *rtp = (struct rtmsg*) NLMSG_DATA(nlp);
-    struct rtattr *atp = (struct rtattr*) RTM_RTA(rtp);
+    struct rtattr *atp = (struct rtattr*) TCA_RTA(rtp);
     int atlen = RTM_PAYLOAD(nlp);
     
     memset(kind, 0, sizeof(kind));
@@ -267,7 +288,6 @@ int main(int argc, char **argv)
 
 
     //Receiving kernel msg
-    printf("Waiting for message...\n");
     do 
     {
       rclen = recv(sfd, ptr, sizeof(buf) - nllen, 0);
