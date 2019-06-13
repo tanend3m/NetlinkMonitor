@@ -35,7 +35,7 @@
     memset(&snl, 0, sizeof(struct sockaddr_nl));
     snl.nl_family = AF_NETLINK;
     snl.nl_pid = getpid();
-    snl.nl_groups = RTMGRP_IPV4_ROUTE | RTMGRP_NOTIFY | RTMGRP_IPV4_IFADDR | RTMGRP_LINK;
+    snl.nl_groups = RTMGRP_IPV4_ROUTE | RTMGRP_NOTIFY | RTMGRP_IPV4_IFADDR | RTMGRP_LINK | RTMGRP_NEIGH;
     bind(sock, (struct sockaddr*) &snl, sizeof(struct sockaddr_nl));
 
     return sock;
@@ -130,6 +130,8 @@
     struct ndmsg *arp = (struct ndmsg*) NLMSG_DATA(nlp);
     struct rtattr *atp = (struct rtattr*) RTM_RTA(arp);
     int atlen = RTM_PAYLOAD(nlp);
+    struct in_addr *inp;
+
     
     memset(nda_dst, 0, sizeof(nda_dst));
     memset(lladdr, 0, sizeof(lladdr));
@@ -141,8 +143,7 @@
         case NDA_DST:     inet_ntop(AF_INET, RTA_DATA(atp), nda_dst,
                                     sizeof(nda_dst));
                           break;
-        case NDA_LLADDR: inet_ntop(AF_INET, RTA_DATA(atp), lladdr,
-                                    sizeof(lladdr));
+        case NDA_LLADDR:  inp = (struct in_addr*) RTA_DATA(atp);
                           break;
       }
     }
@@ -156,7 +157,8 @@
           printf("[DEL ARP]");
           break;
     }
-    printf("Layer dest addr: %s Link layer add: %s\n", nda_dst, lladdr);
+    printf("Layer dest addr: %s", nda_dst);
+    printf(" | Hardware address : %02x:%02x:%02x:%02x:%02x:%02x\n", HRD(*inp));
   }
 
   //NEW INTERFACE CONFIG MSG HANDLER
