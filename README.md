@@ -1,13 +1,9 @@
-System monitorowania parametrów sieci komputerowej 
-w systemie operacyjnym GNU /Linux z użyciem gniazd sieciowych PF_NETLINK.
+Network monitor using PF_NETLINK kernel level sockets.
 
-Program z wykorzystaniem biblioteki rtnetlink wykrywa i wypisuje na wyjście
-informacje o dodaniu/usunięciu:
-- interfejsu sieciowego
-- adresu IP
-- wpisu tablicy routingu
-- wpisu tablicy arp
-
+By grabbing kernel info monitor displays:
+- changes in network interfaces
+- changes in routing tables
+- changes in ARP tables
 
 Compilation:  gcc -Wall ./NetlinkMonitor.c -o ./NetlinkMonitor
 
