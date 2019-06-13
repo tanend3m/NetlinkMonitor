@@ -201,81 +201,6 @@
 
   }
 
-  //RULE MSG HANDLER
-  void rule_hdlr(struct nlmsghdr* nlp)
-  {
-    char dst[32], msk[32], gwy[32], dev[32];
-    struct rtmsg *rtp = (struct rtmsg*) NLMSG_DATA(nlp);
-    if(rtp->rtm_table != RT_TABLE_MAIN)
-      return;
-    struct rtattr *atp = (struct rtattr*) RTM_RTA(rtp);
-    int atlen = RTM_PAYLOAD(nlp);
-    
-    memset(dst, 0, sizeof(dst));
-    memset(msk, 0, sizeof(msk));
-    memset(gwy, 0, sizeof(gwy));     
-    memset(dev, 0, sizeof(dev));
-    
-    for(;RTA_OK(atp, atlen); atp = RTA_NEXT(atp, atlen)) 
-    {
-      switch(atp->rta_type) 
-      {
-        case RTA_DST:     inet_ntop(AF_INET, RTA_DATA(atp), dst,
-                                    sizeof(dst));
-                          break;
-        case RTA_GATEWAY: inet_ntop(AF_INET, RTA_DATA(atp), gwy,
-                                    sizeof(gwy));
-                          break;
-        case RTA_OIF:     sprintf(dev, "%d", *((int*) RTA_DATA(atp)));
-                          break;
-      }
-    }
-    
-    sprintf(msk, "%d", rtp->rtm_dst_len);
-    if (nlp->nlmsg_type == RTM_DELRULE)
-      printf("[DEL ROUTE] ");
-    else if (nlp->nlmsg_type == RTM_NEWRULE)       
-    printf("[ADD ROUTE] ");
-    if (strlen(dst) == 0)
-      printf("default via %s dev %s\n", gwy, dev);
-    else if (strlen(gwy) == 0)
-      printf("%s/%s dev %s\n", dst, msk, dev);
-    else
-      printf("dst %s/%s gwy %s dev %s\n", dst, msk, gwy, dev);
-
-  }
-
-  //CLASS MSG HANDLER
-  void class_hdlr(struct nlmsghdr* nlp)
-  {
-
-    char kind[1024];
-    struct rtmsg *rtp = (struct rtmsg*) NLMSG_DATA(nlp);
-    struct rtattr *atp = (struct rtattr*) TCA_RTA(rtp);
-    int atlen = RTM_PAYLOAD(nlp);
-    
-    memset(kind, 0, sizeof(kind));
-    
-    for(;RTA_OK(atp, atlen); atp = RTA_NEXT(atp, atlen)) 
-    {
-      switch(atp->rta_type) 
-      {
-       case TCA_KIND:     sprintf(kind, "%s", (char*) RTA_DATA(atp));
-                          break;
-      }
-    }
-
-    switch(nlp->nlmsg_type)
-    {
-      case RTM_DELQDISC:
-          printf("[NEW CLASS]");
-          break;
-      case RTM_NEWQDISC:
-          printf("[DEL CLASS]");
-          break;
-    }
-    printf("TCA_KIND: %s\n", kind);
-  }
 
 int main(int argc, char **argv) 
 {
@@ -322,15 +247,6 @@ int main(int argc, char **argv)
         case RTM_DELLINK:
                           link_hdlr(nlp);
                           break;
-        case RTM_DELRULE:
-        case RTM_NEWRULE:
-			  printf("dupa\n");
-                           rule_hdlr(nlp);
-                           break;
-        case RTM_NEWTCLASS:
-        case RTM_DELTCLASS:
-                           class_hdlr(nlp);
-                           break;
                   
         
       }
