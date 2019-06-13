@@ -23,6 +23,7 @@
 
 
   int rclen, nllen, atlen;
+  char *ptr;
   char buf[8192];
   struct rtmsg *rtp;
 
@@ -118,7 +119,7 @@
           printf("[DEL IF]");
           break;
     }
-    printf("Ifname: %s | Hardware add:  %u.%u.%u.%u\n", ifname, NIP(*inp));
+    printf("Ifname: %s | IP address:  %u.%u.%u.%u\n", ifname, NIP(*inp));
   }
 
 
@@ -194,7 +195,7 @@
           break;
     }
     printf("Ifname : %s", dev);
-    printf(" | Ifaddress : %02x:%02x:%02x:%02x:%02x:%02x\n", HRD(*inp));
+    printf(" | Hardware address : %02x:%02x:%02x:%02x:%02x:%02x\n", HRD(*inp));
 
   }
 
@@ -276,7 +277,6 @@
 
 int main(int argc, char **argv) 
 {
-  char *ptr;
   int sfd = open_nl();
   struct nlmsghdr *nlp;
   printf("Starting monitor...\n");
@@ -322,6 +322,7 @@ int main(int argc, char **argv)
                           break;
         case RTM_DELRULE:
         case RTM_NEWRULE:
+			  printf("dupa\n");
                            rule_hdlr(nlp);
                            break;
         case RTM_NEWTCLASS:
