@@ -1,2 +1,2 @@
 all:
-	 gcc -Wall ./NetlinkMonitor.c -o ./NetlinkMonitor
+	 gcc -Wall ./src/main.c ./src/lib/nlmonitor.c -o ./src/NetlinkMonitor
