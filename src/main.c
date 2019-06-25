@@ -1,7 +1,11 @@
 #include "lib/nlmonitor.h"
-#include <stdio.h>
+#include <arpa/inet.h>
 #include <linux/rtnetlink.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 int main(int argc, char **argv) 
 {
@@ -53,16 +57,7 @@ int main(int argc, char **argv)
         case RTM_DELLINK:
                           link_hdlr(nlp);
                           break;
-        case RTM_DELRULE:
-        case RTM_NEWRULE:
-                           rule_hdlr(nlp);
-                           break;
-        case RTM_NEWTCLASS:
-        case RTM_DELTCLASS:
-                           class_hdlr(nlp);
-                           break;
-                  
-        
+       
       }
 
     }

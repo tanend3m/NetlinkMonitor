@@ -1,5 +1,6 @@
-#ifndef nlmonitor.h
-#define nlmonitor.h
+#ifndef nlmonitor
+#define nlmonitor
+#include <linux/rtnetlink.h>
 
 int open_nl();
 void route_hdlr(struct nlmsghdr* nlp);
