@@ -11,10 +11,9 @@ int main(int argc, char **argv)
 {
   int sfd = open_nl();
   struct nlmsghdr *nlp;
-  int rclen, nllen, atlen;
+  int rclen, nllen;
   char buf[8192];
   char *ptr;
-  struct rtmsg *rtp;
 
   printf("Starting monitor...\n");
    while(1) 
